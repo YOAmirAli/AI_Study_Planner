@@ -6,7 +6,7 @@ import Tasks from './pages/Tasks';
 import StudyPlan from './pages/StudyPlan';
 import Login from './pages/Login';
 import Navbar from './components/Navbar';
-
+#functionn
 function App() {
   return (
     <Router>
