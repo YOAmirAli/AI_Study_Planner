@@ -1,0 +1,27 @@
+# Phase 1: Foundation & Setup
+Flask
+flask-cors
+Flask-SQLAlchemy
+pymysql
+cryptography
+python-dotenv
+
+# Phase 2: Authentication (will be used later)
+Flask-JWT-Extended
+bcrypt
+
+# Phase 3: File Upload (will be used later)
+Werkzeug
+
+# Phase 5: AI Tools
+groq
+PyPDF2
+requests
+
+# Phase 7: Notifications & Groups
+APScheduler==3.10.4
+Flask-Mail==0.9.1
+
+# Phase 7: Notifications & Scheduling (will be used later)
+APScheduler
+Flask-Mail
