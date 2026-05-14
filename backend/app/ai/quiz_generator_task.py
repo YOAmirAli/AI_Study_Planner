@@ -1,7 +1,3 @@
-"""
-Quiz Generator for Tasks using Groq API
-Generates MCQ quizzes based on completed tasks
-"""
 
 from app.ai.groq_client import get_groq_client
 import json
