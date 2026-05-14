@@ -1,6 +1,4 @@
-"""
-Flashcard Generator using Groq API
-"""
+
 
 from app.ai.groq_client import get_groq_client
 from app.ai.text_processor import TextProcessor
