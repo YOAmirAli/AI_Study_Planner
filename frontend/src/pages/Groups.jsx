@@ -49,7 +49,7 @@ const Groups = () => {
     }
   }
 
-  const handleJoinGroup = async () => {
+  const handleJoinGroup = async () =>{
     if (!joinCode.trim()) {
       toast.error('Please enter a join code')
       return
@@ -126,7 +126,6 @@ const Groups = () => {
                 className="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-200 focus:border-indigo-500 outline-none"
               />
             </div>
-            
             <div className="space-y-2">
               {groups.map((group) => (
                 <button
