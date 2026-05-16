@@ -3,7 +3,6 @@ import { User, Mail, Building, GraduationCap, Camera, Save, Lock } from 'lucide-
 import { userAPI, analyticsAPI } from '../api/client'
 import { useAuth } from '../contexts/AuthContext'
 import toast from 'react-hot-toast'
-
 const Profile = () => {
   const { user, logout } = useAuth()
   const [profile, setProfile] = useState({
