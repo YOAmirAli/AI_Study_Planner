@@ -11,7 +11,6 @@ import {
   PieChart, Pie, Cell, RadialBarChart, RadialBar
 } from 'recharts'
 import toast from 'react-hot-toast'
-
 const Dashboard = () => {
   const [dashboardData, setDashboardData] = useState(null)
   const [recentTasks, setRecentTasks] = useState([])
