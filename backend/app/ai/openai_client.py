@@ -1,83 +1,114 @@
-# OpenAI wrapper
 """
-OpenAI API Client
-Wrapper for OpenAI API for AI operations
+OpenAI API Client — optional fallback only.
+Primary LLM for quiz, summary, and tutor is gemini_client.py (GEMINI_API_KEY).
 """
 
 import os
 from openai import OpenAI
 
 class OpenAIClient:
-    """OpenAI API client for AI operations"""
-    
     def __init__(self):
-        """Initialize OpenAI client"""
         self.api_key = os.getenv('OPENAI_API_KEY')
-        self.model = os.getenv('OPENAI_MODEL', 'gpt-4-turbo-preview')
-        
         if not self.api_key:
             raise ValueError("OPENAI_API_KEY not found in environment variables")
-        
         self.client = OpenAI(api_key=self.api_key)
+        self.model = "gpt-3.5-turbo"  # Good balance of quality and cost
     
-    def generate_completion(self, prompt: str, max_tokens: int = 1000, temperature: float = 0.7) -> str:
-        """
-        Generate text completion using OpenAI API
+    def generate_quiz(self, text: str, num_questions: int = 10) -> dict:
+        """Generate multiple choice quiz from text"""
+        prompt = f"""Create a {num_questions}-question multiple choice quiz based on this text.
+
+Text: {text[:3000]}
+
+Format each question as JSON:
+{{
+    "question": "Question text",
+    "options": ["A) Option 1", "B) Option 2", "C) Option 3", "D) Option 4"],
+    "correct_answer": "A",
+    "explanation": "Why this is correct"
+}}
+
+Return as JSON array."""
         
-        Args:
-            prompt (str): Input prompt
-            max_tokens (int): Maximum tokens to generate
-            temperature (float): Sampling temperature (0-1)
-            
-        Returns:
-            str: Generated text
-        """
+        response = self.client.chat.completions.create(
+            model=self.model,
+            messages=[
+                {"role": "system", "content": "You are an expert quiz creator for students."},
+                {"role": "user", "content": prompt}
+            ],
+            temperature=0.7,
+            max_tokens=2000
+        )
+        return response.choices[0].message.content
+    
+    def generate_summary(self, text: str, length: str = "moderate") -> str:
+        """Generate summary from text"""
+        length_map = {
+            "brief": "2-3 sentences",
+            "moderate": "1-2 paragraphs", 
+            "detailed": "3-4 paragraphs"
+        }
+        
+        prompt = f"""Summarize the following text in {length_map[length]}:
+
+{text[:4000]}
+
+Summary:"""
+        
+        response = self.client.chat.completions.create(
+            model=self.model,
+            messages=[
+                {"role": "system", "content": "You are an expert summarizer for students."},
+                {"role": "user", "content": prompt}
+            ],
+            temperature=0.5,
+            max_tokens=1000
+        )
+        return response.choices[0].message.content
+    
+    def task_tutor(self, task_title: str, task_description: str) -> dict:
+        """Generate learning guidance for a task"""
+        prompt = f"""Task: {task_title}
+Description: {task_description}
+
+Provide learning guidance in this JSON format:
+{{
+    "explanation": "What this task is about (2-3 sentences)",
+    "learning_steps": ["Step 1", "Step 2", "Step 3", "Step 4", "Step 5"],
+    "key_concepts": ["Concept 1", "Concept 2", "Concept 3"],
+    "study_tips": ["Tip 1", "Tip 2", "Tip 3", "Tip 4"],
+    "estimated_time": 60
+}}"""
+        
+        response = self.client.chat.completions.create(
+            model=self.model,
+            messages=[
+                {"role": "system", "content": "You are a helpful tutor for students."},
+                {"role": "user", "content": prompt}
+            ],
+            temperature=0.7,
+            max_tokens=1500
+        )
+        return response.choices[0].message.content
+    
+    def generate_with_retry(self, prompt: str, max_tokens: int = 1000, temperature: float = 0.7) -> str:
+        """Generic completion with retry"""
         try:
             response = self.client.chat.completions.create(
                 model=self.model,
-                messages=[
-                    {"role": "system", "content": "You are a helpful AI assistant for students."},
-                    {"role": "user", "content": prompt}
-                ],
-                max_tokens=max_tokens,
-                temperature=temperature
+                messages=[{"role": "user", "content": prompt}],
+                temperature=temperature,
+                max_tokens=max_tokens
             )
-            
-            return response.choices[0].message.content.strip()
-            
+            return response.choices[0].message.content
         except Exception as e:
             raise Exception(f"OpenAI API error: {str(e)}")
-    
-    def generate_with_retry(self, prompt: str, max_tokens: int = 1000, 
-                           temperature: float = 0.7, max_retries: int = 3) -> str:
-        """
-        Generate completion with retry logic
-        
-        Args:
-            prompt (str): Input prompt
-            max_tokens (int): Maximum tokens
-            temperature (float): Sampling temperature
-            max_retries (int): Maximum retry attempts
-            
-        Returns:
-            str: Generated text
-        """
-        for attempt in range(max_retries):
-            try:
-                return self.generate_completion(prompt, max_tokens, temperature)
-            except Exception as e:
-                if attempt == max_retries - 1:
-                    raise e
-                continue
-        
-        raise Exception("Failed after maximum retries")
 
 
-# Global client instance
+# Global instance
 _openai_client = None
 
-def get_openai_client() -> OpenAIClient:
-    """Get or create OpenAI client instance"""
+def get_openai_client():
     global _openai_client
     if _openai_client is None:
         _openai_client = OpenAIClient()

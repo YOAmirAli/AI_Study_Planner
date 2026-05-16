@@ -39,11 +39,18 @@ class Config:
     # CORS
     CORS_HEADERS = 'Content-Type'
     
-    # OpenAI (you'll purchase this)
+    # Google Gemini (primary AI)
+    GEMINI_API_KEY = os.getenv('GEMINI_API_KEY')
+    GEMINI_MODEL = os.getenv('GEMINI_MODEL', 'gemini-2.5-flash')
+
+    # OpenAI (fallback if Gemini not set)
     OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
     
-    # Groq (free alternative, keep as fallback)
+    # Groq (used by recommender fallback)
     GROQ_API_KEY = os.getenv('GROQ_API_KEY')
+
+    # YouTube Data API v3
+    YOUTUBE_API_KEY = os.getenv('YOUTUBE_API_KEY')
     
     # Email
     MAIL_SERVER = os.getenv('MAIL_SERVER', 'smtp.gmail.com')
