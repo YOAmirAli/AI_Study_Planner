@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react'
 import { Plus, Search, Filter, BookOpen, Clock, User, MoreVertical, Edit2, Trash2 } from 'lucide-react'
 import { courseAPI } from '../api/client'
 import toast from 'react-hot-toast'
-
 const Courses = () => {
   const [courses, setCourses] = useState([])
   const [loading, setLoading] = useState(true)
