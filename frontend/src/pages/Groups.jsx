@@ -5,7 +5,6 @@ import toast from 'react-hot-toast'
 import ChatRoom from '../components/Groups/ChatRoom'
 import GroupResources from '../components/Groups/GroupResources'
 import Leaderboard from '../components/Groups/Leaderboard'
-
 const Groups = () => {
   const [groups, setGroups] = useState([])
   const [selectedGroup, setSelectedGroup] = useState(null)
