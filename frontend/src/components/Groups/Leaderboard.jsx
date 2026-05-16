@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react'
 import { Trophy, Medal, Star, TrendingUp, Award } from 'lucide-react'
 import { groupAPI } from '../../api/client'
 import toast from 'react-hot-toast'
-
 const Leaderboard = ({ groupId }) => {
   const [leaderboard, setLeaderboard] = useState([])
   const [loading, setLoading] = useState(true)
