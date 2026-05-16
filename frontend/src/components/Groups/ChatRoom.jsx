@@ -7,5 +7,4 @@ const ChatRoom = ({ groupId }) => {
     </div>
   );
 };
-
 export default ChatRoom;
