@@ -8,5 +8,4 @@ const CourseCard = () => {
     </div>
   );
 };
-
 export default CourseCard;
