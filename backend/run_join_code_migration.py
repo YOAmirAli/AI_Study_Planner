@@ -8,7 +8,7 @@ from mysql.connector import Error
 import os
 from dotenv import load_dotenv
 
-# Load environment variables
+# Load envirnment variables
 load_dotenv()
 
 def run_migration():
