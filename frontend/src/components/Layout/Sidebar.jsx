@@ -39,7 +39,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
           <div className="flex items-center gap-2">
             <GraduationCap className="h-8 w-8 text-indigo-400" />
             <span className="text-xl font-bold bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">
-              StudyAI
+              Nova
             </span>
             <Sparkles className="h-4 w-4 text-yellow-400" />
           </div>
@@ -82,7 +82,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
       {/* Footer */}
       {isOpen && (
         <div className="absolute bottom-0 left-0 right-0 p-4 text-center text-xs text-gray-500 border-t border-gray-700">
-          <p>© 2024 StudyAI</p>
+          <p>© 2026 Nova</p>
           <p className="mt-1">Smart Learning Platform</p>
         </div>
       )}

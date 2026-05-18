@@ -49,7 +49,7 @@ const Login = () => {
               <GraduationCap className="h-10 w-10 text-white" />
             </div>
             <h1 className="text-3xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 dark:from-indigo-400 dark:to-purple-400 bg-clip-text text-transparent">
-              StudyAI Planner
+              Nova
             </h1>
             <p className="text-gray-500 dark:text-gray-400 mt-2">Your AI-powered learning companion</p>
           </div>
@@ -137,7 +137,7 @@ const Login = () => {
 
           <div className="mt-8 flex items-center justify-center gap-2 text-xs text-gray-400 dark:text-gray-500">
             <Sparkles className="h-3 w-3" />
-            <span>Powered by Amir and usman</span>
+            <span>Nova — by Amir & Usman</span>
           </div>
         </div>
       </div>

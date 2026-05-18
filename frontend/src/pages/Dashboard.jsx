@@ -131,6 +131,7 @@ const Dashboard = () => {
       <div className="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 rounded-2xl p-8 text-white shadow-xl">
         <div className="flex justify-between items-start">
           <div>
+            <p className="text-indigo-200 text-sm font-semibold uppercase tracking-[0.2em] mb-2">Nova</p>
             <h1 className="text-3xl font-bold mb-2">Welcome back! 👋</h1>
             <p className="text-indigo-100 text-lg">Ready to continue your learning journey?</p>
             <div className="flex gap-4 mt-4">

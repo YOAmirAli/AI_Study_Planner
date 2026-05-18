@@ -77,9 +77,9 @@ const Register = () => {
         <div className="bg-white/80 dark:bg-slate-800/90 backdrop-blur-xl rounded-2xl shadow-2xl p-8 border border-white/50 dark:border-slate-700 max-h-[90vh] overflow-y-auto">
           <div className="text-center mb-6">
             <h1 className="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 dark:from-indigo-400 dark:to-purple-400 bg-clip-text text-transparent">
-              Create Account
+              Nova
             </h1>
-            <p className="text-gray-500 dark:text-gray-400 mt-2">Start your learning journey today</p>
+            <p className="text-gray-500 dark:text-gray-400 mt-2">Create your account</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4" autoComplete="off" noValidate>

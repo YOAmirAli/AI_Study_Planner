@@ -15,12 +15,14 @@ class Config:
     DB_PORT = os.getenv('DB_PORT', '5432')
     DB_NAME = os.getenv('DB_NAME', 'study_planner')
     
-    # Construct PostgreSQL DATABASE_URI
-    if DB_PASSWORD:
-        encoded_password = quote_plus(DB_PASSWORD)
-        SQLALCHEMY_DATABASE_URI = f'postgresql://{DB_USER}:{encoded_password}@{DB_HOST}:{DB_PORT}/{DB_NAME}'
-    else:
-        SQLALCHEMY_DATABASE_URI = f'postgresql://{DB_USER}@{DB_HOST}:{DB_PORT}/{DB_NAME}'
+    # Prefer full DATABASE_URL (e.g., from Neon). Otherwise construct from individual vars.
+    SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL')
+    if not SQLALCHEMY_DATABASE_URI:
+        if DB_PASSWORD:
+            encoded_password = quote_plus(DB_PASSWORD)
+            SQLALCHEMY_DATABASE_URI = f'postgresql://{DB_USER}:{encoded_password}@{DB_HOST}:{DB_PORT}/{DB_NAME}'
+        else:
+            SQLALCHEMY_DATABASE_URI = f'postgresql://{DB_USER}@{DB_HOST}:{DB_PORT}/{DB_NAME}'
     
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     SQLALCHEMY_ECHO = False

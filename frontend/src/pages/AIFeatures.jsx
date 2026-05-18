@@ -36,10 +36,10 @@ const AIFeatures = () => {
           <div>
             <div className="flex items-center gap-2 mb-2">
               <Brain className="h-8 w-8" />
-              <h1 className="text-3xl font-bold">AI Learning Assistant</h1>
+              <h1 className="text-3xl font-bold">Nova AI</h1>
             </div>
             <p className="text-indigo-100 text-lg">
-              Hybrid AI: OpenAI · Trained T5 flashcards · YouTube recommendations
+              Hybrid AI: Gemini · Trained T5 flashcards · YouTube recommendations
             </p>
             <div className="flex gap-3 mt-4">
               <div className="flex items-center gap-2 bg-white/20 rounded-full px-4 py-2">
