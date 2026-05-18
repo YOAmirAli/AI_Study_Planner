@@ -63,7 +63,7 @@ def create_app(config_name=None):
         from app.tasks.scheduler import init_scheduler
         init_scheduler()
     except Exception as e:
-        print(f"⚠️ Job scheduler initialization failed: {e}")
+        print(f"Warning: Job scheduler initialization failed: {e}")
     
     return app
 

@@ -5,26 +5,32 @@ Flask-SQLAlchemy
 pymysql
 cryptography
 python-dotenv
+psycopg2-binary
 
-# Phase 2: Authentication (will be used later)
+# Phase 2: Authentication
 Flask-JWT-Extended
 bcrypt
 
-# Phase 3: File Upload (will be used later)
+# Phase 3: File Upload
 Werkzeug
+PyPDF2
 
-# Phase 5: AI Tools
+# Phase 5: Hybrid AI
+openai>=1.0.0
+youtube-search-python
+requests
+
+# Custom flashcard model (T5)
+torch>=2.0.0
+transformers>=4.36.0
+datasets>=2.14.0
+sentencepiece>=0.1.99
+accelerate>=1.1.0
+
+# Optional fallbacks (not used by default hybrid routing)
 google-generativeai
 groq
-openai
-PyPDF2
-requests
-youtube-search-python
 
 # Phase 7: Notifications & Groups
 APScheduler==3.10.4
 Flask-Mail==0.9.1
-
-# Phase 7: Notifications & Scheduling (will be used later)
-APScheduler
-Flask-Mail

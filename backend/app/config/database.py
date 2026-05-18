@@ -17,6 +17,6 @@ def init_db(app):
         
         # Create all tables
         db.create_all()
-        print("✓ PostgreSQL database tables created successfully")
+        print("[OK] PostgreSQL database tables created successfully")
     
     return db

@@ -1,4 +1,6 @@
-
+"""
+DEPRECATED: Use ai_service.py -> custom_model.py (trained T5 flashcards).
+"""
 
 from app.ai.groq_client import get_groq_client
 from app.ai.text_processor import TextProcessor

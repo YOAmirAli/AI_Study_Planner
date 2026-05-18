@@ -1,22 +1,22 @@
 """
-LLM client for hybrid AI features (quiz, summary, tutor).
-Uses Google Gemini when GEMINI_API_KEY is set in .env.
+LLM client shim — routes to Gemini or OpenAI based on .env config.
+Used for quiz, summary, and tutor.
 """
 
 import os
-
+from app.ai.openai_client import get_openai_client
 from app.ai.gemini_client import get_gemini_client
 
 
 def get_ai_client():
-    if not os.getenv('GEMINI_API_KEY'):
-        raise ValueError(
-            "GEMINI_API_KEY is required for quiz, summary, and tutor. "
-            "Add it to backend/.env"
-        )
-    return get_gemini_client()
+    if os.getenv('GEMINI_API_KEY'):
+        return get_gemini_client()
+    return get_openai_client()
 
 
 def get_ai_provider_name() -> str:
-    model = os.getenv('GEMINI_MODEL', 'gemini-2.5-flash')
-    return f'Google Gemini ({model})'
+    if os.getenv('GEMINI_API_KEY'):
+        client = get_gemini_client()
+        return f"Gemini ({client.model.model_name})"
+    client = get_openai_client()
+    return f"OpenAI ({client.model})"

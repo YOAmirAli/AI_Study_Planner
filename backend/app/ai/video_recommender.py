@@ -1,5 +1,7 @@
 """
-YouTube Video Recommender - uses YouTube Data API when key is set, else search fallback
+YouTube Video Recommender
+- Uses YouTube Data API v3 when YOUTUBE_API_KEY is set
+- Otherwise uses youtube-search-python (no API key required)
 """
 
 import os

@@ -5,6 +5,34 @@ from app.utils.jwt_utils import get_current_user_id
 
 ai_bp = Blueprint('ai', __name__, url_prefix='/api/ai')
 
+
+@ai_bp.route('/status', methods=['GET'])
+@token_required
+def ai_status():
+    """Hybrid AI stack health (for demos / debugging)."""
+    import os
+    from pathlib import Path
+
+    backend_root = Path(__file__).resolve().parents[2]
+    model_dir = backend_root / 'models' / 'flashcard_model' / 'final'
+    openai_key = os.getenv('OPENAI_API_KEY', '')
+    youtube_key = os.getenv('YOUTUBE_API_KEY', '')
+
+    return jsonify({
+        'hybrid_ai': {
+            'quiz_summary_tutor': 'openai',
+            'flashcards': 't5_finetuned_local',
+            'video_recommendations': 'youtube_api_or_search',
+            'task_suggestions': 'rule_based',
+        },
+        'openai_configured': bool(openai_key and not openai_key.startswith('your-')),
+        'openai_model': os.getenv('OPENAI_MODEL', 'gpt-4o-mini'),
+        'youtube_api_configured': bool(youtube_key),
+        'flashcard_model_trained': (model_dir / 'config.json').is_file(),
+        'flashcard_model_path': str(model_dir),
+    }), 200
+
+
 @ai_bp.route('/summarize', methods=['POST'])
 @token_required
 def summarize_text():
@@ -27,22 +55,23 @@ def summarize_text():
     try:
         user_id = get_current_user_id()
         
-        # Check if file upload or JSON
-        if request.files and 'file' in request.files:
-            file = request.files['file']
-            text = None
-            length = request.form.get('length', 'moderate')
-        else:
-            data = request.get_json()
-            if not data:
-                return jsonify({
-                    'error': 'Bad Request',
-                    'message': 'Request body or file is required'
-                }), 400
-            
+        # Extract file if present
+        file = request.files.get('file')
+        
+        # Support both form data and JSON
+        if request.is_json:
+            data = request.get_json(silent=True) or {}
             text = data.get('text')
-            file = None
             length = data.get('length', 'moderate')
+        else:
+            text = request.form.get('text')
+            length = request.form.get('length', 'moderate')
+            
+        if not file and not text:
+            return jsonify({
+                'error': 'Bad Request',
+                'message': 'Text or file is required'
+            }), 400
         
         # Validate length
         if length not in ['brief', 'moderate', 'detailed']:
@@ -95,24 +124,28 @@ def generate_quiz():
     try:
         user_id = get_current_user_id()
         
-        # Check if file upload or JSON
-        if request.files and 'file' in request.files:
-            file = request.files['file']
-            text = None
-            num_questions = int(request.form.get('num_questions', 10))
-            question_type = request.form.get('question_type', 'mixed')
-        else:
-            data = request.get_json()
-            if not data:
-                return jsonify({
-                    'error': 'Bad Request',
-                    'message': 'Request body or file is required'
-                }), 400
-            
+        # Extract file if present
+        file = request.files.get('file')
+        
+        # Support both form data and JSON
+        if request.is_json:
+            data = request.get_json(silent=True) or {}
             text = data.get('text')
-            file = None
             num_questions = data.get('num_questions', 10)
             question_type = data.get('question_type', 'mixed')
+        else:
+            text = request.form.get('text')
+            num_questions = request.form.get('num_questions', 10)
+            question_type = request.form.get('question_type', 'mixed')
+            
+        if num_questions is not None:
+            num_questions = int(num_questions)
+            
+        if not file and not text:
+            return jsonify({
+                'error': 'Bad Request',
+                'message': 'Text or file is required'
+            }), 400
         
         # Validate inputs
         if question_type not in ['mcq', 'short_answer', 'mixed']:
@@ -164,22 +197,26 @@ def create_flashcards():
     try:
         user_id = get_current_user_id()
         
-        # Check if file upload or JSON
-        if request.files and 'file' in request.files:
-            file = request.files['file']
-            text = None
-            num_cards = int(request.form.get('num_cards', 20))
-        else:
-            data = request.get_json()
-            if not data:
-                return jsonify({
-                    'error': 'Bad Request',
-                    'message': 'Request body or file is required'
-                }), 400
-            
+        # Extract file if present
+        file = request.files.get('file')
+        
+        # Support both form data and JSON
+        if request.is_json:
+            data = request.get_json(silent=True) or {}
             text = data.get('text')
-            file = None
             num_cards = data.get('num_cards', 20)
+        else:
+            text = request.form.get('text')
+            num_cards = request.form.get('num_cards', 20)
+            
+        if num_cards is not None:
+            num_cards = int(num_cards)
+            
+        if not file and not text:
+            return jsonify({
+                'error': 'Bad Request',
+                'message': 'Text or file is required'
+            }), 400
         
         # Generate flashcards
         result, error = AIService.generate_flashcards(text, file, num_cards)

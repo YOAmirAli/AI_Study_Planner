@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
-import { Plus, Search, Filter, Calendar, Flag, Clock, CheckCircle, Circle, Edit2, Trash2, AlertCircle } from 'lucide-react'
-import { taskAPI, courseAPI } from '../api/client'
+import { Plus, Search, Filter, Calendar, Flag, Clock, CheckCircle, Circle, Edit2, Trash2, AlertCircle, BookOpen, BrainCircuit } from 'lucide-react'
+import { taskAPI, courseAPI, quizAPI } from '../api/client'
 import toast from 'react-hot-toast'
 import { format } from 'date-fns'
 
@@ -78,6 +78,16 @@ const Tasks = () => {
       } catch (error) {
         toast.error('Failed to delete task')
       }
+    }
+  }
+
+  const handleGenerateQuiz = async (taskId) => {
+    try {
+      toast.loading('Generating quiz from task... This may take a moment.', { id: 'quiz-gen' })
+      await quizAPI.generate({ task_id: taskId, num_questions: 5 })
+      toast.success('Quiz generated successfully! Check the Quizzes page.', { id: 'quiz-gen' })
+    } catch (error) {
+      toast.error('Failed to generate quiz. Please try again.', { id: 'quiz-gen' })
     }
   }
 
@@ -264,6 +274,15 @@ const Tasks = () => {
                 </div>
               </div>
               <div className="flex items-center gap-2">
+                {task.status === 'completed' && (
+                  <button
+                    onClick={() => handleGenerateQuiz(task.task_id)}
+                    className="p-2 rounded-lg bg-indigo-50 text-indigo-600 hover:bg-indigo-100 transition-colors"
+                    title="Generate Quiz"
+                  >
+                    <BrainCircuit className="h-4 w-4" />
+                  </button>
+                )}
                 <button
                   onClick={() => {
                     setEditingTask(task)

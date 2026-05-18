@@ -9,9 +9,9 @@ if __name__ == '__main__':
     port = int(os.getenv('PORT', 5000))
     
     # Run the application
-    print(f"🚀 Starting AI Study Planner API on http://localhost:{port}")
-    print(f"📊 Environment: {os.getenv('FLASK_ENV', 'development')}")
-    print(f"✓ Health check available at: http://localhost:{port}/api/health")
+    print(f"Starting AI Study Planner API on http://localhost:{port}")
+    print(f"Environment: {os.getenv('FLASK_ENV', 'development')}")
+    print(f"Health check available at: http://localhost:{port}/api/health")
     
     app.run(
         host='0.0.0.0',

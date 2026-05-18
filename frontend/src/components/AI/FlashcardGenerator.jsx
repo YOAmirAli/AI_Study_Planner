@@ -201,6 +201,11 @@ const FlashcardGenerator = () => {
                 <h3 className="text-xl font-bold text-gray-800">Your Flashcards</h3>
                 <p className="text-gray-500">
                   Card {currentCard + 1} of {flashcards.flashcards.length}
+                  {flashcards.ai_provider && (
+                    <span className="block text-xs text-indigo-600 mt-1">
+                      Model: {flashcards.ai_provider}
+                    </span>
+                  )}
                 </p>
               </div>
               <div className="flex gap-2">

@@ -1,114 +1,183 @@
 """
-OpenAI API Client — optional fallback only.
-Primary LLM for quiz, summary, and tutor is gemini_client.py (GEMINI_API_KEY).
+OpenAI API client for quiz generation, summarization, and task tutoring.
+Requires OPENAI_API_KEY in backend/.env
 """
 
+import json
 import os
+import re
+
 from openai import OpenAI
+
+
+def _strip_json_fence(text: str) -> str:
+    text = text.strip()
+    if text.startswith("```"):
+        text = re.sub(r"^```(?:json)?\s*", "", text, flags=re.IGNORECASE)
+        text = re.sub(r"\s*```$", "", text)
+    return text.strip()
+
+
+def _parse_json(text: str, fallback=None):
+    try:
+        return json.loads(_strip_json_fence(text))
+    except json.JSONDecodeError:
+        return fallback
+
 
 class OpenAIClient:
     def __init__(self):
-        self.api_key = os.getenv('OPENAI_API_KEY')
-        if not self.api_key:
-            raise ValueError("OPENAI_API_KEY not found in environment variables")
+        self.api_key = os.getenv("OPENAI_API_KEY")
+        if not self.api_key or self.api_key.startswith("your-"):
+            raise ValueError(
+                "OPENAI_API_KEY is required. Set a valid key in backend/.env"
+            )
         self.client = OpenAI(api_key=self.api_key)
-        self.model = "gpt-3.5-turbo"  # Good balance of quality and cost
-    
-    def generate_quiz(self, text: str, num_questions: int = 10) -> dict:
-        """Generate multiple choice quiz from text"""
-        prompt = f"""Create a {num_questions}-question multiple choice quiz based on this text.
+        self.model = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
 
-Text: {text[:3000]}
+    def generate_quiz(self, text: str, num_questions: int = 10, question_type: str = "mixed") -> str:
+        if question_type == "mcq":
+            desc = "multiple choice"
+            format_instruction = """{
+  "question": "string",
+  "options": ["A) ...", "B) ...", "C) ...", "D) ..."],
+  "correct_answer": "A",
+  "explanation": "string",
+  "type": "mcq"
+}"""
+        elif question_type == "short_answer":
+            desc = "short answer"
+            format_instruction = """{
+  "question": "string",
+  "correct_answer": "string",
+  "explanation": "string",
+  "type": "short_answer"
+}"""
+        else:
+            desc = "mixed (some multiple choice and some short answer)"
+            format_instruction = """For multiple choice:
+{
+  "question": "string",
+  "options": ["A) ...", "B) ...", "C) ...", "D) ..."],
+  "correct_answer": "A",
+  "explanation": "string",
+  "type": "mcq"
+}
+For short answer:
+{
+  "question": "string",
+  "correct_answer": "string",
+  "explanation": "string",
+  "type": "short_answer"
+}"""
 
-Format each question as JSON:
-{{
-    "question": "Question text",
-    "options": ["A) Option 1", "B) Option 2", "C) Option 3", "D) Option 4"],
-    "correct_answer": "A",
-    "explanation": "Why this is correct"
-}}
+        prompt = f"""Create exactly {num_questions} {desc} quiz questions from this study material.
 
-Return as JSON array."""
-        
+Material:
+{text[:3500]}
+
+Return ONLY a JSON array. Each item formatted according to its type:
+{format_instruction}"""
+
         response = self.client.chat.completions.create(
             model=self.model,
             messages=[
-                {"role": "system", "content": "You are an expert quiz creator for students."},
-                {"role": "user", "content": prompt}
+                {
+                    "role": "system",
+                    "content": "You create accurate academic quizzes. Output valid JSON only.",
+                },
+                {"role": "user", "content": prompt},
             ],
             temperature=0.7,
-            max_tokens=2000
+            max_tokens=2500,
         )
-        return response.choices[0].message.content
-    
+        return response.choices[0].message.content or "[]"
+
     def generate_summary(self, text: str, length: str = "moderate") -> str:
-        """Generate summary from text"""
         length_map = {
             "brief": "2-3 sentences",
-            "moderate": "1-2 paragraphs", 
-            "detailed": "3-4 paragraphs"
+            "moderate": "1-2 paragraphs",
+            "detailed": "3-4 paragraphs",
         }
-        
-        prompt = f"""Summarize the following text in {length_map[length]}:
+        target = length_map.get(length, length_map["moderate"])
 
-{text[:4000]}
+        prompt = f"""Summarize the following study material in {target}. Be clear and student-friendly.
 
-Summary:"""
-        
+Material:
+{text[:4500]}"""
+
         response = self.client.chat.completions.create(
             model=self.model,
             messages=[
-                {"role": "system", "content": "You are an expert summarizer for students."},
-                {"role": "user", "content": prompt}
+                {
+                    "role": "system",
+                    "content": "You are an expert academic summarizer.",
+                },
+                {"role": "user", "content": prompt},
             ],
             temperature=0.5,
-            max_tokens=1000
+            max_tokens=1200,
         )
-        return response.choices[0].message.content
-    
-    def task_tutor(self, task_title: str, task_description: str) -> dict:
-        """Generate learning guidance for a task"""
-        prompt = f"""Task: {task_title}
-Description: {task_description}
+        return (response.choices[0].message.content or "").strip()
 
-Provide learning guidance in this JSON format:
+    def task_tutor(self, task_title: str, task_description: str) -> str:
+        prompt = f"""Task title: {task_title}
+Task description: {task_description}
+
+Return ONLY JSON (no markdown):
 {{
-    "explanation": "What this task is about (2-3 sentences)",
-    "learning_steps": ["Step 1", "Step 2", "Step 3", "Step 4", "Step 5"],
-    "key_concepts": ["Concept 1", "Concept 2", "Concept 3"],
-    "study_tips": ["Tip 1", "Tip 2", "Tip 3", "Tip 4"],
-    "estimated_time": 60
+  "explanation": "2-3 sentences",
+  "learning_steps": ["step1", "step2", "step3", "step4", "step5"],
+  "key_concepts": ["concept1", "concept2", "concept3"],
+  "study_tips": ["tip1", "tip2", "tip3"],
+  "estimated_time": 60
 }}"""
-        
+
         response = self.client.chat.completions.create(
             model=self.model,
             messages=[
-                {"role": "system", "content": "You are a helpful tutor for students."},
-                {"role": "user", "content": prompt}
+                {
+                    "role": "system",
+                    "content": "You are a supportive study tutor. Output valid JSON only.",
+                },
+                {"role": "user", "content": prompt},
             ],
             temperature=0.7,
-            max_tokens=1500
+            max_tokens=1500,
         )
-        return response.choices[0].message.content
-    
-    def generate_with_retry(self, prompt: str, max_tokens: int = 1000, temperature: float = 0.7) -> str:
-        """Generic completion with retry"""
-        try:
-            response = self.client.chat.completions.create(
-                model=self.model,
-                messages=[{"role": "user", "content": prompt}],
-                temperature=temperature,
-                max_tokens=max_tokens
-            )
-            return response.choices[0].message.content
-        except Exception as e:
-            raise Exception(f"OpenAI API error: {str(e)}")
+        return response.choices[0].message.content or "{}"
+
+    def parse_quiz_response(self, raw: str) -> list:
+        parsed = _parse_json(raw)
+        if isinstance(parsed, list):
+            return parsed
+        if isinstance(parsed, dict) and "questions" in parsed:
+            return parsed["questions"]
+        return [{"question": raw[:500], "type": "short_answer"}]
+
+    def parse_tutor_response(self, raw: str, task_title: str) -> dict:
+        parsed = _parse_json(raw)
+        if isinstance(parsed, dict) and parsed.get("explanation"):
+            return parsed
+        return {
+            "explanation": (raw or "")[:300],
+            "learning_steps": [
+                "Read the task requirements",
+                "Break the work into small steps",
+                "Research key concepts",
+                "Complete the deliverable",
+                "Review and revise",
+            ],
+            "key_concepts": [task_title],
+            "study_tips": ["Take notes", "Use practice problems", "Review daily"],
+            "estimated_time": 60,
+        }
 
 
-# Global instance
 _openai_client = None
 
-def get_openai_client():
+
+def get_openai_client() -> OpenAIClient:
     global _openai_client
     if _openai_client is None:
         _openai_client = OpenAIClient()

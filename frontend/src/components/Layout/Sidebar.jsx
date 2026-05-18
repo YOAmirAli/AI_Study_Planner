@@ -24,8 +24,16 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
   const { logout } = useAuth()
 
   return (
-    <div className={`fixed left-0 top-0 h-full bg-gradient-to-b from-gray-900 to-gray-800 text-white transition-all duration-300 z-20 shadow-2xl ${isOpen ? 'w-64' : 'w-20'}`}>
-      {/* Logo */}
+    <>
+      {/* Mobile Overlay */}
+      {isOpen && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-20 md:hidden"
+          onClick={() => setIsOpen(false)}
+        />
+      )}
+      <div className={`fixed left-0 top-0 h-full bg-gradient-to-b from-gray-900 to-gray-800 text-white transition-all duration-300 z-30 shadow-2xl ${isOpen ? 'translate-x-0 w-64' : '-translate-x-full w-64 md:translate-x-0 md:w-20'}`}>
+        {/* Logo */}
       <div className="flex items-center justify-center h-20 border-b border-gray-700">
         {isOpen ? (
           <div className="flex items-center gap-2">
@@ -78,7 +86,8 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
           <p className="mt-1">Smart Learning Platform</p>
         </div>
       )}
-    </div>
+      </div>
+    </>
   )
 }
 

@@ -4,13 +4,13 @@ import Sidebar from '../components/Layout/Sidebar'
 import Navbar from '../components/Layout/Navbar'
 
 const MainLayout = () => {
-  const [sidebarOpen, setSidebarOpen] = useState(true)
+  const [sidebarOpen, setSidebarOpen] = useState(window.innerWidth > 768)
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-900">
       <Sidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
       
-      <div className={`transition-all duration-300 ${sidebarOpen ? 'ml-64' : 'ml-20'}`}>
+      <div className={`transition-all duration-300 ${sidebarOpen ? 'md:ml-64' : 'md:ml-20'}`}>
         <Navbar toggleSidebar={() => setSidebarOpen(!sidebarOpen)} />
         
         <main className="p-6">

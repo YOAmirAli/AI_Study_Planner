@@ -20,7 +20,7 @@ function App() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-50 via-white to-purple-50">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-50 via-white to-purple-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-900">
         <div className="relative">
           <div className="animate-spin rounded-full h-20 w-20 border-t-4 border-b-4 border-indigo-600"></div>
           <div className="absolute inset-0 flex items-center justify-center">
@@ -36,7 +36,7 @@ function App() {
       <Route path="/login" element={!user ? <Login /> : <Navigate to="/" />} />
       <Route path="/register" element={!user ? <Register /> : <Navigate to="/" />} />
       
-      <Route element={<MainLayout />}>
+      <Route element={user ? <MainLayout /> : <Navigate to="/login" />}>
         <Route path="/" element={<Dashboard />} />
         <Route path="/courses" element={<Courses />} />
         <Route path="/tasks" element={<Tasks />} />

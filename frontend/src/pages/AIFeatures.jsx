@@ -39,7 +39,7 @@ const AIFeatures = () => {
               <h1 className="text-3xl font-bold">AI Learning Assistant</h1>
             </div>
             <p className="text-indigo-100 text-lg">
-              Powered by OpenAI GPT-4 - Your intelligent study companion
+              Hybrid AI: OpenAI · Trained T5 flashcards · YouTube recommendations
             </p>
             <div className="flex gap-3 mt-4">
               <div className="flex items-center gap-2 bg-white/20 rounded-full px-4 py-2">

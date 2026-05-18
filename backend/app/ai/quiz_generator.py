@@ -1,5 +1,6 @@
 """
-Quiz Generator using Groq API
+DEPRECATED: Use ai_service.py -> openai_client.py (hybrid AI routing).
+Kept for reference; not used by API routes.
 """
 
 from app.ai.groq_client import get_groq_client

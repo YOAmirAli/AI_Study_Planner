@@ -47,7 +47,7 @@ class Quiz(db.Model):
     def __repr__(self):
         return f'<Quiz {self.title}>'
     
-    def to_dict(self, include_questions=False, include_result=False):
+    def to_dict(self, include_questions=False, include_result=False, include_answers=False):
         """Convert quiz object to dictionary"""
         quiz_dict = {
             'quiz_id': self.quiz_id,
@@ -77,7 +77,7 @@ class Quiz(db.Model):
         
         # Include questions if requested
         if include_questions:
-            quiz_dict['questions'] = [q.to_dict() for q in self.questions]
+            quiz_dict['questions'] = [q.to_dict(include_answer=include_answers) for q in self.questions]
         
         # Include result if requested
         if include_result and self.result:

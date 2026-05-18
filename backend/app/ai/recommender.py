@@ -1,6 +1,5 @@
 """
-Study Material Recommender
-Search for educational videos and resources
+DEPRECATED: Use ai_service.py -> video_recommender.py (YouTube hybrid).
 """
 
 import requests

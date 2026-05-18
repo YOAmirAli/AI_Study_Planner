@@ -1,9 +1,26 @@
 """
-Google Gemini API Client - For quiz, summary, and tutoring
+DEPRECATED for hybrid routing: use openai_client.py via ai_service.py.
+Optional fallback only if GEMINI_API_KEY is wired manually.
 """
 
 import os
+import json
+import re
 import google.generativeai as genai
+
+def _strip_json_fence(text: str) -> str:
+    text = text.strip()
+    if text.startswith("```"):
+        text = re.sub(r"^```(?:json)?\s*", "", text, flags=re.IGNORECASE)
+        text = re.sub(r"\s*```$", "", text)
+    return text.strip()
+
+def _parse_json(text: str, fallback=None):
+    try:
+        return json.loads(_strip_json_fence(text))
+    except json.JSONDecodeError:
+        return fallback
+
 
 
 class GeminiClient:
@@ -23,18 +40,48 @@ class GeminiClient:
         )
         return response.text
 
-    def generate_quiz(self, text: str, num_questions: int = 10) -> str:
-        prompt = f"""Create a {num_questions}-question multiple choice quiz based on this text.
-
-Text: {text[:3000]}
-
-Format each question as JSON:
-{{
+    def generate_quiz(self, text: str, num_questions: int = 10, question_type: str = "mixed") -> str:
+        if question_type == "mcq":
+            desc = "multiple choice"
+            format_instruction = """{
     "question": "Question text",
     "options": ["A) Option 1", "B) Option 2", "C) Option 3", "D) Option 4"],
     "correct_answer": "A",
-    "explanation": "Why this is correct"
-}}
+    "explanation": "Why this is correct",
+    "type": "mcq"
+}"""
+        elif question_type == "short_answer":
+            desc = "short answer"
+            format_instruction = """{
+    "question": "Question text",
+    "correct_answer": "Expected short answer",
+    "explanation": "Why this is correct",
+    "type": "short_answer"
+}"""
+        else:
+            desc = "mixed (some multiple choice and some short answer)"
+            format_instruction = """For multiple choice:
+{
+    "question": "Question text",
+    "options": ["A) Option 1", "B) Option 2", "C) Option 3", "D) Option 4"],
+    "correct_answer": "A",
+    "explanation": "Why this is correct",
+    "type": "mcq"
+}
+For short answer:
+{
+    "question": "Question text",
+    "correct_answer": "Expected short answer",
+    "explanation": "Why this is correct",
+    "type": "short_answer"
+}"""
+
+        prompt = f"""Create a {num_questions}-question {desc} quiz based on this text.
+
+Text: {text[:3000]}
+
+Format each question as JSON according to its type:
+{format_instruction}
 
 Return as JSON array only, no markdown."""
         return self._generate(
@@ -77,6 +124,32 @@ Provide learning guidance in this JSON format only, no markdown:
             system="You are a helpful tutor for students.",
             temperature=0.7,
         )
+
+    def parse_quiz_response(self, raw: str) -> list:
+        parsed = _parse_json(raw)
+        if isinstance(parsed, list):
+            return parsed
+        if isinstance(parsed, dict) and "questions" in parsed:
+            return parsed["questions"]
+        return [{"question": raw[:500], "type": "short_answer"}]
+
+    def parse_tutor_response(self, raw: str, task_title: str) -> dict:
+        parsed = _parse_json(raw)
+        if isinstance(parsed, dict) and parsed.get("explanation"):
+            return parsed
+        return {
+            "explanation": (raw or "")[:300],
+            "learning_steps": [
+                "Read the task requirements",
+                "Break the work into small steps",
+                "Research key concepts",
+                "Complete the deliverable",
+                "Review and revise",
+            ],
+            "key_concepts": [task_title],
+            "study_tips": ["Take notes", "Use practice problems", "Review daily"],
+            "estimated_time": 60,
+        }
 
     def generate_with_retry(self, prompt: str, max_tokens: int = 1000, temperature: float = 0.7) -> str:
         try:

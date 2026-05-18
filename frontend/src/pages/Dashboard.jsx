@@ -54,8 +54,8 @@ const Dashboard = () => {
       value: dashboardData?.total_courses || 0,
       icon: BookOpen,
       color: 'from-blue-500 to-blue-600',
-      bgColor: 'bg-blue-50',
-      textColor: 'text-blue-600',
+      bgColor: 'bg-blue-50 dark:bg-blue-950/50',
+      textColor: 'text-blue-600 dark:text-blue-400',
       change: '+12%',
       trend: 'up'
     },
@@ -64,8 +64,8 @@ const Dashboard = () => {
       value: dashboardData?.completed_tasks || 0,
       icon: CheckCircle,
       color: 'from-green-500 to-green-600',
-      bgColor: 'bg-green-50',
-      textColor: 'text-green-600',
+      bgColor: 'bg-green-50 dark:bg-green-950/50',
+      textColor: 'text-green-600 dark:text-green-400',
       change: '+8%',
       trend: 'up'
     },
@@ -74,8 +74,8 @@ const Dashboard = () => {
       value: dashboardData?.study_hours_this_week || 0,
       icon: Clock,
       color: 'from-purple-500 to-purple-600',
-      bgColor: 'bg-purple-50',
-      textColor: 'text-purple-600',
+      bgColor: 'bg-purple-50 dark:bg-purple-950/50',
+      textColor: 'text-purple-600 dark:text-purple-400',
       change: '+23%',
       trend: 'up',
       suffix: 'hrs'
@@ -85,26 +85,30 @@ const Dashboard = () => {
       value: dashboardData?.completion_rate || 0,
       icon: Target,
       color: 'from-orange-500 to-orange-600',
-      bgColor: 'bg-orange-50',
-      textColor: 'text-orange-600',
+      bgColor: 'bg-orange-50 dark:bg-orange-950/50',
+      textColor: 'text-orange-600 dark:text-orange-400',
       change: '+5%',
       trend: 'up',
       suffix: '%'
     },
   ]
 
-  const pieData = [
+  const rawPieData = [
     { name: 'Completed', value: dashboardData?.completed_tasks || 0, color: '#10b981' },
     { name: 'In Progress', value: dashboardData?.in_progress || 0, color: '#f59e0b' },
     { name: 'Pending', value: dashboardData?.pending_tasks || 0, color: '#ef4444' },
   ]
+  const pieData = rawPieData.filter(item => item.value > 0)
+  if (pieData.length === 0) {
+    pieData.push({ name: 'No Tasks', value: 1, color: '#e5e7eb' })
+  }
 
   const getPriorityColor = (priority) => {
     switch(priority) {
-      case 'high': return 'text-red-600 bg-red-100'
-      case 'medium': return 'text-yellow-600 bg-yellow-100'
-      case 'low': return 'text-green-600 bg-green-100'
-      default: return 'text-gray-600 bg-gray-100'
+      case 'high': return 'text-red-600 bg-red-100 dark:text-red-300 dark:bg-red-900/40'
+      case 'medium': return 'text-yellow-600 bg-yellow-100 dark:text-yellow-300 dark:bg-yellow-900/40'
+      case 'low': return 'text-green-600 bg-green-100 dark:text-green-300 dark:bg-green-900/40'
+      default: return 'text-gray-600 bg-gray-100 dark:text-gray-300 dark:bg-slate-700'
     }
   }
 
@@ -154,8 +158,8 @@ const Dashboard = () => {
           <div key={index} className="stat-card card p-6">
             <div className="flex justify-between items-start">
               <div>
-                <p className="text-sm text-gray-500 font-medium">{stat.title}</p>
-                <p className="text-3xl font-bold text-gray-800 mt-2">
+                <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">{stat.title}</p>
+                <p className="text-3xl font-bold text-gray-800 dark:text-gray-100 mt-2">
                   {stat.value}{stat.suffix || ''}
                 </p>
                 <div className="flex items-center gap-1 mt-2">

@@ -56,24 +56,24 @@ class JobScheduler:
         """Start the scheduler"""
         try:
             self.scheduler.start()
-            print("✓ Job scheduler started successfully")
+            print("[OK] Job scheduler started successfully")
             
             # Print scheduled jobs
             jobs = self.scheduler.get_jobs()
-            print(f"✓ {len(jobs)} scheduled jobs loaded:")
+            print(f"[OK] {len(jobs)} scheduled jobs loaded:")
             for job in jobs:
                 print(f"  - {job.name} (ID: {job.id})")
             
             # Shutdown scheduler when app exits
             atexit.register(lambda: self.scheduler.shutdown())
         except Exception as e:
-            print(f"❌ Failed to start job scheduler: {e}")
+            print(f"Failed to start job scheduler: {e}")
     
     def stop(self):
         """Stop the scheduler"""
         if self.scheduler.running:
             self.scheduler.shutdown()
-            print("✓ Job scheduler stopped")
+            print("[OK] Job scheduler stopped")
     
     def get_jobs(self):
         """Get list of scheduled jobs"""

@@ -199,6 +199,10 @@ def update_task(task_id):
                 'message': 'Request body is required'
             }), 400
         
+        # Prevent "multiple values for argument" error by removing positional args from data
+        data.pop('task_id', None)
+        data.pop('user_id', None)
+        
         task, error = TaskService.update_task(task_id, user_id, **data)
         
         if error:
@@ -276,7 +280,7 @@ def complete_task(task_id):
     """
     try:
         user_id = get_current_user_id()
-        data = request.get_json() or {}
+        data = request.get_json(silent=True) or {}
         
         task, error = TaskService.complete_task(
             task_id=task_id,

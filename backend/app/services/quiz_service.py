@@ -102,14 +102,10 @@ class QuizService:
         if not quiz:
             return None
         
-        quiz_dict = quiz.to_dict(include_questions=True, include_result=True)
+        # Include answers if explicitly requested or if the quiz is already completed
+        should_include = include_answers or quiz.status == 'completed'
         
-        # Filter answers based on quiz status
-        if quiz_dict.get('questions'):
-            for question in quiz_dict['questions']:
-                if not include_answers and quiz.status != 'completed':
-                    question.pop('correct_answer', None)
-                    question.pop('explanation', None)
+        quiz_dict = quiz.to_dict(include_questions=True, include_result=True, include_answers=should_include)
         
         return quiz_dict
     

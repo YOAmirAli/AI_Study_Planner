@@ -1,5 +1,9 @@
+"""
+Quiz Generator for Tasks using Unified AI Client
+Generates MCQ quizzes based on completed tasks
+"""
 
-from app.ai.groq_client import get_groq_client
+from app.ai.ai_client import get_ai_client
 import json
 
 class TaskQuizGenerator:
@@ -22,18 +26,14 @@ class TaskQuizGenerator:
             num_questions = 10
         
         try:
-            client = get_groq_client()
+            client = get_ai_client()
             
             prompt = f"""Generate a {num_questions}-question multiple choice quiz to test understanding of the following task:
 
 Task: {task_title}
 Description: {task_description}
 
-Create challenging but fair questions that test:
-- Understanding of key concepts
-- Application of knowledge
-- Critical thinking
-- Problem-solving
+Create challenging but fair questions that test understanding of key concepts.
 
 Format as JSON array:
 [
@@ -48,46 +48,51 @@ Format as JSON array:
   }}
 ]
 
-Make questions clear, concise, and educational. Ensure only ONE answer is correct.
-Generate exactly {num_questions} questions.
+Generate exactly {num_questions} questions."""
 
-Questions:"""
+            # We can use the existing client methods
+            # But the client interface usually returns generic raw text and we parse it.
+            # To be safe with Gemini/OpenAI format expectations, we call the raw _generate or chat if we had it.
+            # Wait, the ai_client clients already have generate_quiz! Let's just use it!
+            
+            # Use the existing generate_quiz logic from the client
+            task_text = f"Task: {task_title}\nDescription: {task_description}"
+            raw = client.generate_quiz(task_text, num_questions=num_questions, question_type="mcq")
+            questions = client.parse_quiz_response(raw)
+            
+            # Format questions to match the expected DB schema for TaskQuizGenerator
+            formatted_questions = []
+            for i, q in enumerate(questions[:num_questions], 1):
+                # The generic client returns options as a list: ["A) ...", "B) ..."]
+                # We need to map them to option_a, option_b, etc.
+                options = q.get('options', [])
+                opt_a = options[0] if len(options) > 0 else 'Option A'
+                opt_b = options[1] if len(options) > 1 else 'Option B'
+                opt_c = options[2] if len(options) > 2 else 'Option C'
+                opt_d = options[3] if len(options) > 3 else 'Option D'
+                
+                # Strip "A) " prefix if present
+                if opt_a.startswith("A) "): opt_a = opt_a[3:]
+                if opt_b.startswith("B) "): opt_b = opt_b[3:]
+                if opt_c.startswith("C) "): opt_c = opt_c[3:]
+                if opt_d.startswith("D) "): opt_d = opt_d[3:]
 
-            response = client.generate_with_retry(
-                prompt=prompt,
-                max_tokens=3000,
-                temperature=0.7
-            )
+                formatted_questions.append({
+                    'question_number': i,
+                    'question_text': q.get('question', f'Question {i}'),
+                    'option_a': opt_a,
+                    'option_b': opt_b,
+                    'option_c': opt_c,
+                    'option_d': opt_d,
+                    'correct_answer': q.get('correct_answer', 'A').upper().replace(")", "").strip(),
+                    'explanation': q.get('explanation', 'Correct answer explanation')
+                })
             
-            # Parse JSON response
-            json_start = response.find('[')
-            json_end = response.rfind(']') + 1
-            
-            if json_start != -1 and json_end > json_start:
-                json_str = response[json_start:json_end]
-                questions = json.loads(json_str)
-                
-                # Validate and format questions
-                formatted_questions = []
-                for i, q in enumerate(questions[:num_questions], 1):
-                    formatted_questions.append({
-                        'question_number': i,
-                        'question_text': q.get('question', f'Question {i}'),
-                        'option_a': q.get('option_a', 'Option A'),
-                        'option_b': q.get('option_b', 'Option B'),
-                        'option_c': q.get('option_c', 'Option C'),
-                        'option_d': q.get('option_d', 'Option D'),
-                        'correct_answer': q.get('correct_answer', 'A').upper(),
-                        'explanation': q.get('explanation', 'Correct answer explanation')
-                    })
-                
-                return {
-                    'questions': formatted_questions,
-                    'total_questions': len(formatted_questions)
-                }
-            else:
-                raise ValueError("Could not parse AI response")
-                
+            return {
+                'questions': formatted_questions,
+                'total_questions': len(formatted_questions)
+            }
+
         except Exception as e:
             print(f"Error generating quiz: {str(e)}")
             # Return fallback quiz
