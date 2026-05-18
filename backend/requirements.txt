@@ -28,7 +28,7 @@ sentencepiece>=0.1.99
 accelerate>=1.1.0
 
 # Optional fallbacks (not used by default hybrid routing)
-google-generativeai
+google-genai
 groq
 
 # Phase 7: Notifications & Groups

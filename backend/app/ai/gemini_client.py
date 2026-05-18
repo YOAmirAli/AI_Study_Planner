@@ -6,7 +6,13 @@ Optional fallback only if GEMINI_API_KEY is wired manually.
 import os
 import json
 import re
-import google.generativeai as genai
+
+try:
+    from google import genai
+    _USE_NEW_GENAI = True
+except ImportError:
+    import google.generativeai as genai
+    _USE_NEW_GENAI = False
 
 def _strip_json_fence(text: str) -> str:
     text = text.strip()
@@ -28,12 +34,29 @@ class GeminiClient:
         self.api_key = os.getenv('GEMINI_API_KEY')
         if not self.api_key:
             raise ValueError("GEMINI_API_KEY not found in environment variables")
-        genai.configure(api_key=self.api_key)
-        model_name = os.getenv('GEMINI_MODEL', 'gemini-2.5-flash')
-        self.model = genai.GenerativeModel(model_name)
+        self.model_name = os.getenv('GEMINI_MODEL', 'gemini-2.5-flash')
+        if _USE_NEW_GENAI and not self.model_name.startswith('models/'):
+            self.model_name = f"models/{self.model_name}"
+        if _USE_NEW_GENAI:
+            self.client = genai.Client(api_key=self.api_key)
+        else:
+            genai.configure(api_key=self.api_key)
+            self.model = genai.GenerativeModel(self.model_name)
 
     def _generate(self, prompt: str, system: str = None, temperature: float = 0.7) -> str:
         full_prompt = f"{system}\n\n{prompt}" if system else prompt
+        if _USE_NEW_GENAI:
+            response = self.client.generate_text(
+                model=self.model_name,
+                prompt=full_prompt,
+                temperature=temperature,
+            )
+            if hasattr(response, 'text'):
+                return response.text
+            if hasattr(response, 'result'):
+                return response.result
+            return str(response)
+
         response = self.model.generate_content(
             full_prompt,
             generation_config={"temperature": temperature},

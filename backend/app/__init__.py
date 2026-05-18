@@ -71,6 +71,15 @@ def create_app(config_name=None):
 def register_blueprints(app):
     """Register all blueprints"""
     
+    # Root route for platform health checks
+    @app.route('/', methods=['GET'])
+    def index():
+        return jsonify({
+            'status': 'ok',
+            'message': 'AI Study Planner API backend is running',
+            'health_url': '/api/health'
+        }), 200
+
     # Health check route (Phase 1)
     @app.route('/api/health', methods=['GET'])
     def health_check():
