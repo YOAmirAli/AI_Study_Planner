@@ -12,7 +12,11 @@ AI Service Coordinator - HYBRID APPROACH
 from werkzeug.datastructures import FileStorage
 
 from app.ai.custom_model import get_custom_model
-from app.ai.ai_client import get_ai_client, get_ai_provider_name
+import os
+
+from app.ai.ai_client import get_ai_client, get_ai_provider_name, is_valid_api_key
+from app.ai.gemini_client import get_gemini_client
+from app.ai.openai_client import get_openai_client
 from app.ai.text_processor import TextProcessor
 from app.ai.video_recommender import get_video_recommender
 
@@ -30,14 +34,41 @@ class AIService:
 
     @staticmethod
     def generate_summary(text: str = None, file: FileStorage = None, length: str = "moderate"):
-        """OpenAI API — summarization"""
+        """Summarization via Gemini or OpenAI (with fallback)."""
         try:
             text, err = AIService._extract_text(text, file)
             if err:
                 return None, err
 
-            client = get_ai_client()
-            summary = client.generate_summary(text, length)
+            providers = []
+            if is_valid_api_key(os.getenv('GEMINI_API_KEY')):
+                providers.append('gemini')
+            if is_valid_api_key(os.getenv('OPENAI_API_KEY')):
+                providers.append('openai')
+
+            if not providers:
+                return None, (
+                    "No AI API key configured. Set OPENAI_API_KEY or GEMINI_API_KEY "
+                    "in your server environment (e.g. Render dashboard)."
+                )
+
+            client = None
+            summary = None
+            last_error = None
+
+            for provider in providers:
+                try:
+                    client = (
+                        get_gemini_client() if provider == 'gemini' else get_openai_client()
+                    )
+                    summary = client.generate_summary(text, length)
+                    break
+                except Exception as e:
+                    last_error = e
+                    continue
+
+            if summary is None:
+                return None, f"Failed to generate summary: {last_error}"
 
             original_length = len(text)
             summary_length = len(summary)
@@ -52,7 +83,7 @@ class AIService:
                 "original_length": original_length,
                 "summary_length": summary_length,
                 "compression_ratio": compression_ratio,
-                "ai_provider": get_ai_provider_name(),
+                "ai_provider": get_ai_provider_name(client),
             }, None
         except Exception as e:
             return None, f"Failed to generate summary: {str(e)}"

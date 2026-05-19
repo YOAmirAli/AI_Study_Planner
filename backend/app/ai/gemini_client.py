@@ -1,18 +1,14 @@
 """
-DEPRECATED for hybrid routing: use openai_client.py via ai_service.py.
-Optional fallback only if GEMINI_API_KEY is wired manually.
+Gemini client using the google-genai SDK (client.models.generate_content).
 """
 
-import os
 import json
+import os
 import re
 
-try:
-    from google import genai
-    _USE_NEW_GENAI = True
-except ImportError:
-    import google.generativeai as genai
-    _USE_NEW_GENAI = False
+from google import genai
+from google.genai import types
+
 
 def _strip_json_fence(text: str) -> str:
     text = text.strip()
@@ -21,6 +17,7 @@ def _strip_json_fence(text: str) -> str:
         text = re.sub(r"\s*```$", "", text)
     return text.strip()
 
+
 def _parse_json(text: str, fallback=None):
     try:
         return json.loads(_strip_json_fence(text))
@@ -28,36 +25,40 @@ def _parse_json(text: str, fallback=None):
         return fallback
 
 
+def _normalize_model_name(name: str) -> str:
+    """New SDK expects 'gemini-2.5-flash', not 'models/gemini-2.5-flash'."""
+    if name.startswith("models/"):
+        return name[len("models/"):]
+    return name
+
 
 class GeminiClient:
     def __init__(self):
-        self.api_key = os.getenv('GEMINI_API_KEY')
-        if not self.api_key:
-            raise ValueError("GEMINI_API_KEY not found in environment variables")
-        self.model_name = os.getenv('GEMINI_MODEL', 'gemini-2.5-flash')
-        if _USE_NEW_GENAI and not self.model_name.startswith('models/'):
-            self.model_name = f"models/{self.model_name}"
-        if _USE_NEW_GENAI:
-            self.client = genai.Client(api_key=self.api_key)
-        else:
-            genai.configure(api_key=self.api_key)
-            self.model = genai.GenerativeModel(self.model_name)
+        self.api_key = os.getenv("GEMINI_API_KEY")
+        if not self.api_key or self.api_key.startswith("your-"):
+            raise ValueError("GEMINI_API_KEY is required and must be a valid key")
+        self.model_name = _normalize_model_name(
+            os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
+        )
+        self.client = genai.Client(api_key=self.api_key)
 
     def _generate(self, prompt: str, system: str = None, temperature: float = 0.7) -> str:
-        full_prompt = f"{system}\n\n{prompt}" if system else prompt
-        if _USE_NEW_GENAI:
-            response = self.client.models.generate_content(
-                model=self.model_name,
-                contents=full_prompt,
-                config={"temperature": temperature},
-            )
-            return (getattr(response, 'text', None) or str(response)).strip()
+        config_kwargs = {"temperature": temperature}
+        if system:
+            config_kwargs["system_instruction"] = system
 
-        response = self.model.generate_content(
-            full_prompt,
-            generation_config={"temperature": temperature},
+        response = self.client.models.generate_content(
+            model=self.model_name,
+            contents=prompt,
+            config=types.GenerateContentConfig(**config_kwargs),
         )
-        return response.text
+        text = getattr(response, "text", None)
+        if text:
+            return text.strip()
+        if getattr(response, "candidates", None):
+            parts = response.candidates[0].content.parts
+            return "".join(getattr(p, "text", "") or "" for p in parts).strip()
+        return str(response).strip()
 
     def generate_quiz(self, text: str, num_questions: int = 10, question_type: str = "mixed") -> str:
         if question_type == "mcq":

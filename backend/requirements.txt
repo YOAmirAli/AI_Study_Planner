@@ -30,8 +30,10 @@ datasets>=2.14.0
 sentencepiece>=0.1.99
 accelerate>=1.1.0
 
-# Optional fallbacks (not used by default hybrid routing)
-google-genai
+# Gemini (primary when GEMINI_API_KEY is set)
+google-genai>=1.0.0
+
+# Optional fallbacks
 groq
 
 # Phase 7: Notifications & Groups
