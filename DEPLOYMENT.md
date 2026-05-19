@@ -33,6 +33,17 @@ npm run dev
 
 Backend runs on port **10000** by default. Vite proxies `/api` to that port.
 
+## Vercel (frontend) — fix `404: NOT_FOUND`
+
+If you see Vercel’s `404: NOT_FOUND` page when opening `/groups`, `/courses`, etc.:
+
+1. **Root Directory** in Vercel project settings → set to `frontend` (or deploy from repo root using the root `vercel.json`).
+2. **Build**: `npm run build` · **Output**: `dist`
+3. **Environment**: `VITE_API_URL` = your Render backend URL (e.g. `https://ai-study-planner-api.onrender.com`)
+4. Redeploy after pulling the latest commit (includes `vercel.json` SPA rewrites).
+
+The rewrite sends all routes to `index.html` so React Router can handle `/groups`, `/login`, etc.
+
 ## One-click Render deploy
 
 Connect this repo on [Render](https://render.com) and use the `render.yaml` blueprint, then add `DATABASE_URL` and an AI API key in the dashboard.
