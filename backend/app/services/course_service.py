@@ -106,6 +106,12 @@ class CourseService:
         if not course:
             return None, "Course not found"
         
+        allowed_fields = {
+            'course_name', 'course_code', 'credit_hours',
+            'instructor', 'color', 'schedule', 'topics',
+        }
+        kwargs = {k: v for k, v in kwargs.items() if k in allowed_fields}
+
         try:
             # Update fields if provided
             if 'course_name' in kwargs and kwargs['course_name']:

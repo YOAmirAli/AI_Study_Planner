@@ -8,12 +8,22 @@ const Courses = () => {
   const [showModal, setShowModal] = useState(false)
   const [editingCourse, setEditingCourse] = useState(null)
   const [searchTerm, setSearchTerm] = useState('')
-  const [formData, setFormData] = useState({
+  const emptyForm = {
     course_name: '',
     course_code: '',
     credit_hours: 3,
     instructor: '',
     color: '#6366f1'
+  }
+
+  const [formData, setFormData] = useState(emptyForm)
+
+  const toPayload = (data) => ({
+    course_name: data.course_name?.trim(),
+    course_code: data.course_code?.trim() || null,
+    credit_hours: Number.isFinite(Number(data.credit_hours)) ? Number(data.credit_hours) : null,
+    instructor: data.instructor?.trim() || null,
+    color: data.color || '#6366f1',
   })
 
   useEffect(() => {
@@ -34,16 +44,17 @@ const Courses = () => {
   const handleSubmit = async (e) => {
     e.preventDefault()
     try {
+      const payload = toPayload(formData)
       if (editingCourse) {
-        await courseAPI.update(editingCourse.course_id, formData)
+        await courseAPI.update(editingCourse.course_id, payload)
         toast.success('Course updated successfully')
       } else {
-        await courseAPI.create(formData)
+        await courseAPI.create(payload)
         toast.success('Course created successfully')
       }
       setShowModal(false)
       setEditingCourse(null)
-      setFormData({ course_name: '', course_code: '', credit_hours: 3, instructor: '', color: '#6366f1' })
+      setFormData(emptyForm)
       fetchCourses()
     } catch (error) {
       toast.error(error.response?.data?.message || 'Operation failed')
@@ -90,7 +101,7 @@ const Courses = () => {
         <button
           onClick={() => {
             setEditingCourse(null)
-            setFormData({ course_name: '', course_code: '', credit_hours: 3, instructor: '', color: '#6366f1' })
+            setFormData(emptyForm)
             setShowModal(true)
           }}
           className="btn-primary flex items-center gap-2"
@@ -141,7 +152,13 @@ const Courses = () => {
                     <button
                       onClick={() => {
                         setEditingCourse(course)
-                        setFormData(course)
+                        setFormData({
+                          course_name: course.course_name || '',
+                          course_code: course.course_code || '',
+                          credit_hours: course.credit_hours ?? 3,
+                          instructor: course.instructor || '',
+                          color: course.color || '#6366f1',
+                        })
                         setShowModal(true)
                       }}
                       className="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 flex items-center gap-2"
@@ -223,7 +240,7 @@ const Courses = () => {
                 <input
                   type="number"
                   value={formData.credit_hours}
-                  onChange={(e) => setFormData({ ...formData, credit_hours: parseInt(e.target.value) })}
+                  onChange={(e) => setFormData({ ...formData, credit_hours: e.target.value === '' ? '' : parseInt(e.target.value, 10) })}
                   className="input"
                   min="1"
                   max="6"

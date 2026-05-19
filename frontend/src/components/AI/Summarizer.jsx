@@ -245,13 +245,15 @@ const Summarizer = () => {
               </div>
               <div className="bg-gray-50 rounded-xl p-3">
                 <p className="text-xs text-gray-500">Compression</p>
-                <p className="font-semibold text-green-600">{summary.compression_ratio}%</p>
+                <p className="font-semibold text-green-600">
+                  {summary.compression_ratio != null ? `${summary.compression_ratio}%` : '—'}
+                </p>
               </div>
             </div>
             
             {summary.ai_provider && (
               <p className="text-xs text-center text-gray-400 mt-4">
-                Powered by {summary.ai_provider === 'openai' ? 'OpenAI GPT-4' : 'Groq'}
+                Powered by {summary.ai_provider}
               </p>
             )}
           </div>

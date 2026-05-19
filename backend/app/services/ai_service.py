@@ -39,10 +39,19 @@ class AIService:
             client = get_ai_client()
             summary = client.generate_summary(text, length)
 
+            original_length = len(text)
+            summary_length = len(summary)
+            compression_ratio = (
+                round(summary_length / original_length * 100, 1)
+                if original_length > 0
+                else 0
+            )
+
             return {
                 "summary": summary,
-                "original_length": len(text),
-                "summary_length": len(summary),
+                "original_length": original_length,
+                "summary_length": summary_length,
+                "compression_ratio": compression_ratio,
                 "ai_provider": get_ai_provider_name(),
             }, None
         except Exception as e:

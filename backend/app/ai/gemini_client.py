@@ -46,16 +46,12 @@ class GeminiClient:
     def _generate(self, prompt: str, system: str = None, temperature: float = 0.7) -> str:
         full_prompt = f"{system}\n\n{prompt}" if system else prompt
         if _USE_NEW_GENAI:
-            response = self.client.generate_text(
+            response = self.client.models.generate_content(
                 model=self.model_name,
-                prompt=full_prompt,
-                temperature=temperature,
+                contents=full_prompt,
+                config={"temperature": temperature},
             )
-            if hasattr(response, 'text'):
-                return response.text
-            if hasattr(response, 'result'):
-                return response.result
-            return str(response)
+            return (getattr(response, 'text', None) or str(response)).strip()
 
         response = self.model.generate_content(
             full_prompt,

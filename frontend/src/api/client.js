@@ -1,8 +1,14 @@
 import axios from 'axios'
 import toast from 'react-hot-toast'
 
+const normalizeApiBaseUrl = (url) => {
+  if (!url) return '/api'
+  const trimmed = url.replace(/\/+$/, '')
+  return trimmed.endsWith('/api') ? trimmed : `${trimmed}/api`
+}
+
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || '/api',
+  baseURL: normalizeApiBaseUrl(import.meta.env.VITE_API_URL),
   headers: {
     'Content-Type': 'application/json',
   },
@@ -13,6 +19,10 @@ api.interceptors.request.use(
     const token = localStorage.getItem('token')
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
+    }
+    // Let the browser set multipart boundary for file uploads
+    if (config.data instanceof FormData) {
+      delete config.headers['Content-Type']
     }
     return config
   },
@@ -82,15 +92,9 @@ export const scheduleAPI = {
 
 // AI API
 export const aiAPI = {
-  summarize: (formData) => api.post('/ai/summarize', formData, {
-    headers: { 'Content-Type': 'multipart/form-data' }
-  }),
-  generateQuiz: (formData) => api.post('/ai/generate-quiz', formData, {
-    headers: { 'Content-Type': 'multipart/form-data' }
-  }),
-  generateFlashcards: (formData) => api.post('/ai/create-flashcards', formData, {
-    headers: { 'Content-Type': 'multipart/form-data' }
-  }),
+  summarize: (formData) => api.post('/ai/summarize', formData),
+  generateQuiz: (formData) => api.post('/ai/generate-quiz', formData),
+  generateFlashcards: (formData) => api.post('/ai/create-flashcards', formData),
   recommendMaterials: (data) => api.post('/ai/recommend-materials', data),
   taskTutor: (data) => api.post('/ai/task-tutor', data),
   suggestTasks: (data) => api.post('/ai/suggest-tasks', data),
